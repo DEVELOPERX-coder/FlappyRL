@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build with SDL3",
+      "type": "shell",
+      "command": "g++",
+      "args": [
+        "-g", // Include debug symbols
+        "main.cpp", // Your main code file
+        "Game/Game.cpp",
+        "-Iinclude", // Tell g++ where to find headers
+        "-Llib", // Tell g++ where to find libraries
+        "-lSDL3", // Link the main SDL3 library
+        "-lSDL3_image", // Link the main SDL3_image library
+        "-o", // Flag to specify output file
+        "main.exe" // The name of your program
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    }
+  ],
+  "files.associations": {
+    "bitset": "cpp",
+    "type_traits": "cpp"
+  }
+}
+
+// To run PRESS : ctrl + shift + b
