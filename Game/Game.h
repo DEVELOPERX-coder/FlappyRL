@@ -6,6 +6,7 @@
 #include <cstdlib> // srand
 #include <cmath>
 #include <algorithm>
+#include <ctime> // time
 
 class Bird
 {
@@ -27,7 +28,6 @@ private:
     std::vector<int> h_nodes;
     int o_nodes;
 
-    std::vector<std::vector<float>> weights_ih;
     std::vector<std::vector<std::vector<float>>> weights_hh;
     std::vector<std::vector<float>> weights_ho;
     std::vector<std::vector<float>> bias_h;

@@ -4,19 +4,19 @@
 
 Bird::Bird(int inputNodes, std::vector<int> hiddenNodes, int outputNodes) : xCordinate(100), yCordinate(300), size(20), velocity(0), gravity(800), jumpStrength(-400), score(0), fitness(0), gameOver(false), i_nodes(inputNodes), h_nodes(hiddenNodes), o_nodes(outputNodes)
 {
-    weights_ih.resize(h_nodes[0], std::vector<float>(i_nodes));
-    for (int i = 0; i < h_nodes[0]; ++i)
-    {
-        for (int j = 0; j < i_nodes; ++j)
-        {
-            weights_ih[i][j] = randomFloat();
-        }
-    }
-
     weights_hh.resize(h_nodes.size());
+    weights_hh[0].resize(h_nodes[0], std::vector<float>(i_nodes));
     for (int layer = 1; layer < h_nodes.size(); ++layer)
     {
         weights_hh[layer].resize(h_nodes[layer], std::vector<float>(h_nodes[layer - 1]));
+    }
+
+    for (int node = 0, layer = 0; node < h_nodes[0]; ++node)
+    {
+        for (int inp = 0; inp < i_nodes; ++inp)
+        {
+            weights_hh[layer][node][inp] = randomFloat();
+        }
     }
     for (int layer = 1; layer < h_nodes.size(); ++layer)
     {
@@ -92,11 +92,12 @@ std::vector<float> Bird::feedForward(const std::vector<float> &inputs)
         float weightedSum = 0.0f;
         for (int prevNode = 0; prevNode < i_nodes; ++prevNode)
         {
-            weightedSum += weights_ih[prevNode][node] * inputs[prevNode];
+            weightedSum += weights_hh[0][node][prevNode] * inputs[prevNode];
         }
+        weightedSum += bias_h[0][node];
+        hidden_output[node] = sigmoid(weightedSum);
     }
-
-    for (int layer = 1; layer < (int)h_nodes.size(); ++layer)
+    for (int layer = 1; layer < h_nodes.size(); ++layer)
     {
         std::vector<float> hidden_output_layer(h_nodes[layer]);
         for (int node = 0; node < h_nodes[layer]; ++node)
@@ -129,18 +130,18 @@ std::vector<float> Bird::feedForward(const std::vector<float> &inputs)
 
 void Bird::mutate(float mutationRate)
 {
-    for (int node = 0; node < h_nodes[0]; ++node)
+    for (int node = 0, layer = 0; node < h_nodes[layer]; ++node)
     {
         for (int prevNode = 0; prevNode < i_nodes; ++prevNode)
         {
             if (randomChance() < mutationRate)
             {
-                weights_ih[node][prevNode] += randomFloat();
+                weights_hh[layer][node][prevNode] += randomFloat();
             }
         }
     }
 
-    for (int layer = 1; layer < (int)h_nodes.size(); ++layer)
+    for (int layer = 1; layer < h_nodes.size(); ++layer)
     {
         for (int node = 0; node < h_nodes[layer]; ++node)
         {
@@ -263,31 +264,31 @@ Pipe::Pipe(float startingXCordinate, float groundHeight, float roofHeight, float
 void Pipe::update(float deltaTime)
 {
     xCordinate -= Xspeed * deltaTime;
-    if (goingDown)
-        yCordinateGap -= Yspeed * deltaTime;
-    else
-        yCordinateGap += Yspeed * deltaTime;
+    // if (goingDown)
+    //     yCordinateGap += Yspeed * deltaTime;
+    // else
+    //     yCordinateGap -= Yspeed * deltaTime;
 
-    if (yCordinateGap + gapHeight / 2 >= groundHeight)
-    {
-        goingDown != goingDown;
-        yCordinateGap = groundHeight - gapHeight / 2;
-    }
-    if (yCordinateGap - gapHeight / 2 <= roofHeight)
-    {
-        goingDown != goingDown;
-        yCordinateGap = roofHeight + gapHeight / 2;
-    }
+    // if (yCordinateGap + gapHeight / 2 >= groundHeight)
+    // {
+    //     goingDown != goingDown;
+    //     yCordinateGap = groundHeight - gapHeight / 2;
+    // }
+    // if (yCordinateGap - gapHeight / 2 <= roofHeight)
+    // {
+    //     goingDown != goingDown;
+    //     yCordinateGap = roofHeight + gapHeight / 2;
+    // }
 }
 
 SDL_FRect Pipe::getTopRect()
 {
-    return {xCordinate, 0, width, yCordinateGap - gapHeight / 2};
+    return {xCordinate, roofHeight, width, yCordinateGap - gapHeight / 2 - roofHeight};
 }
 
 SDL_FRect Pipe::getBottomRect()
 {
-    return {xCordinate, yCordinateGap + gapHeight / 2, width, windowHeight - (yCordinateGap + gapHeight / 2) - roofHeight - groundHeight};
+    return {xCordinate, yCordinateGap + gapHeight / 2, width, windowHeight - (yCordinateGap + gapHeight / 2) - groundHeight};
 }
 
 bool Pipe::isOffScreen()
@@ -362,8 +363,9 @@ void Population::evolveNewGeneration()
 
     Bird elite1 = population[topElitism[0]];
     elite1.reset();
-
     newGeneration.push_back(elite1);
+    ++start;
+
     for (; start < populationSize / 3; ++start)
     {
         Bird child = elite1;
@@ -373,9 +375,10 @@ void Population::evolveNewGeneration()
 
     Bird elite2 = population[topElitism[1]];
     elite2.reset();
-
     newGeneration.push_back(elite2);
-    for (; start < populationSize / 3 * 2; ++start)
+    ++start;
+
+    for (; start < (populationSize / 3) * 2; ++start)
     {
         Bird child = elite2;
         child.mutate(mutationRate);
@@ -384,8 +387,9 @@ void Population::evolveNewGeneration()
 
     Bird elite3 = population[topElitism[2]];
     elite3.reset();
-
     newGeneration.push_back(elite3);
+    ++start;
+
     for (; start < populationSize; ++start)
     {
         Bird child = elite3;
@@ -413,6 +417,8 @@ int Population::getGenerationNumber()
 
 Game::Game() : populationSize(15), mutationRate(0.05f), population(populationSize, mutationRate)
 {
+    srand(static_cast<unsigned int>(time(NULL)));
+
     survivalFrames = 0;
     windowHeight = 600;
     windowWidth = 800;
@@ -450,6 +456,7 @@ void Game::resetGame()
     pipes.clear();
     pipes.push_back({Pipe(800, groundHeight, roofHeight, windowHeight)});
     pipeSpawnTimer = 0;
+    survivalFrames = 0;
 }
 
 void Game::run()
@@ -468,6 +475,8 @@ void Game::run()
             Uint64 currentTickCheck = SDL_GetTicks();
             deltaTime = (float)(currentTickCheck - lastTickCheck) / 1000.0f;
             lastTickCheck = currentTickCheck;
+
+            ++survivalFrames;
 
             while (SDL_PollEvent(&event))
             {
@@ -552,6 +561,7 @@ void Game::run()
             // Rendering Part Start
             renderBackground();
             renderPipes();
+            renderRoof();
             renderGround();
             renderBirds();
             SDL_RenderPresent(renderer);
@@ -636,6 +646,17 @@ void Game::renderBirds()
         SDL_SetRenderDrawColor(renderer, r, g, b, 255);
         SDL_FRect birdBody = bird.getRect();
         SDL_RenderFillRect(renderer, &birdBody);
+    }
+}
+
+void Game::renderRoof()
+{
+    SDL_Color ground = {34, 139, 34, 255};
+
+    for (int y = 0; y < roofHeight; ++y)
+    {
+        SDL_SetRenderDrawColor(renderer, ground.r, ground.g, ground.b, ground.a);
+        SDL_RenderLine(renderer, 0, y, windowWidth, y);
     }
 }
 
