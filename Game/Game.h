@@ -2,6 +2,7 @@
 #define GAME_H
 
 #include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 #include <vector>
 #include <cstdlib> // srand
 #include <cmath>

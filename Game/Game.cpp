@@ -258,27 +258,26 @@ Pipe::Pipe(float startingXCordinate, float groundHeight, float roofHeight, float
 
     goingDown = true;
 
-    yCordinateGap = roofHeight + (gapHeight / 2) + (rand() % (int)(windowHeight - groundHeight - roofHeight - gapHeight));
+    yCordinateGap = roofHeight + 10 + (gapHeight / 2) + (rand() % (int)(windowHeight - groundHeight - roofHeight - gapHeight - 20));
 }
 
 void Pipe::update(float deltaTime)
 {
     xCordinate -= Xspeed * deltaTime;
-    // if (goingDown)
-    //     yCordinateGap += Yspeed * deltaTime;
-    // else
-    //     yCordinateGap -= Yspeed * deltaTime;
 
-    // if (yCordinateGap + gapHeight / 2 >= groundHeight)
-    // {
-    //     goingDown != goingDown;
-    //     yCordinateGap = groundHeight - gapHeight / 2;
-    // }
-    // if (yCordinateGap - gapHeight / 2 <= roofHeight)
-    // {
-    //     goingDown != goingDown;
-    //     yCordinateGap = roofHeight + gapHeight / 2;
-    // }
+    if (goingDown)
+        yCordinateGap += Yspeed * deltaTime;
+    else
+        yCordinateGap -= Yspeed * deltaTime;
+
+    if (yCordinateGap + gapHeight / 2 + 10 >= windowHeight - groundHeight)
+    {
+        goingDown = !goingDown;
+    }
+    if (yCordinateGap - gapHeight / 2 - 10 <= roofHeight)
+    {
+        goingDown = !goingDown;
+    }
 }
 
 SDL_FRect Pipe::getTopRect()
@@ -441,6 +440,18 @@ Game::Game() : populationSize(15), mutationRate(0.05f), population(populationSiz
         SDL_Quit();
         return;
     }
+
+    SDL_Surface *icon = IMG_Load("./Resources/Image/Icon.png");
+    if (!icon)
+    {
+        SDL_Log("IMG_Load Error: %s", SDL_GetError());
+    }
+    else
+    {
+        SDL_SetWindowIcon(window, icon);
+        SDL_DestroySurface(icon);
+    }
+
     renderer = SDL_CreateRenderer(window, NULL);
     if (!window)
     {
@@ -586,89 +597,99 @@ void Game::run()
 
 void Game::renderBackground()
 {
-    SDL_Color color1 = {30, 15, 117, 255};   // #1e0f75
-    SDL_Color color2 = {55, 133, 216, 255};  // #3785d8
-    SDL_Color color3 = {173, 198, 229, 255}; // #adc6e5
+    SDL_Texture *back = IMG_LoadTexture(renderer, "./Resources/Image/Background.png");
+    SDL_FRect background;
+    background.w = windowWidth;
+    background.h = windowHeight;
+    background.x = 0;
+    background.y = 0;
 
-    for (int y = roofHeight; y < windowHeight - groundHeight; ++y)
-    {
-        float t;
-        SDL_Color start, end;
-
-        if (y < (windowHeight >> 1))
-        {
-            t = (float)y / (windowHeight >> 1);
-            start = color1;
-            end = color2;
-        }
-        else
-        {
-            t = (float)(y - (windowHeight >> 1)) / (windowHeight >> 1);
-            start = color2;
-            end = color3;
-        }
-
-        Uint8 r = (1 - t) * start.r + t * end.r;
-        Uint8 g = (1 - t) * start.g + t * end.g;
-        Uint8 b = (1 - t) * start.b + t * end.b;
-
-        SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-        SDL_RenderLine(renderer, 0, y, windowWidth, y);
-    }
+    SDL_RenderTexture(renderer, back, NULL, &background);
+    SDL_DestroyTexture(back);
 }
 
 void Game::renderPipes()
 {
+    SDL_Texture *pipeT = IMG_LoadTexture(renderer, "./Resources/Image/Top_Pipe.png");
+    SDL_Texture *pipeB = IMG_LoadTexture(renderer, "./Resources/Image/Bottom_Pipe.png");
+
     for (auto &pipe : pipes)
     {
         SDL_FRect topPipe = pipe.getTopRect();
         SDL_FRect bottomPipe = pipe.getBottomRect();
 
-        SDL_SetRenderDrawColor(renderer, 46, 139, 87, 255);
-        SDL_RenderFillRect(renderer, &topPipe);
-        SDL_RenderFillRect(renderer, &bottomPipe);
+        SDL_RenderTexture(renderer, pipeT, NULL, &topPipe);
+        SDL_RenderTexture(renderer, pipeB, NULL, &bottomPipe);
     }
+
+    SDL_DestroyTexture(pipeT);
+    SDL_DestroyTexture(pipeB);
 }
 
 void Game::renderBirds()
 {
-    for (int i = 0; i < populationSize; ++i)
+    int i = 0;
+    SDL_Texture *bird1 = IMG_LoadTexture(renderer, "./Resources/Image/Bird_1.png");
+    for (; i < populationSize / 3; ++i)
     {
         Bird &bird = population.getPopulation()[i];
         if (bird.getGameOver())
             continue;
 
-        // Generate a unique color based on index
-        Uint8 r = (Uint8)((i * 40) % 256);
-        Uint8 g = (Uint8)((i * 85) % 256);
-        Uint8 b = (Uint8)((i * 130) % 256);
-
-        SDL_SetRenderDrawColor(renderer, r, g, b, 255);
         SDL_FRect birdBody = bird.getRect();
-        SDL_RenderFillRect(renderer, &birdBody);
+        SDL_RenderTexture(renderer, bird1, NULL, &birdBody);
     }
+    SDL_DestroyTexture(bird1);
+
+    SDL_Texture *bird2 = IMG_LoadTexture(renderer, "./Resources/Image/Bird_2.png");
+    for (; i < populationSize * 2 / 3; ++i)
+    {
+        Bird &bird = population.getPopulation()[i];
+        if (bird.getGameOver())
+            continue;
+
+        SDL_FRect birdBody = bird.getRect();
+        SDL_RenderTexture(renderer, bird2, NULL, &birdBody);
+    }
+    SDL_DestroyTexture(bird2);
+
+    SDL_Texture *bird3 = IMG_LoadTexture(renderer, "./Resources/Image/Bird_3.png");
+    for (; i < populationSize; ++i)
+    {
+        Bird &bird = population.getPopulation()[i];
+        if (bird.getGameOver())
+            continue;
+
+        SDL_FRect birdBody = bird.getRect();
+        SDL_RenderTexture(renderer, bird3, NULL, &birdBody);
+    }
+    SDL_DestroyTexture(bird3);
 }
 
 void Game::renderRoof()
 {
-    SDL_Color ground = {34, 139, 34, 255};
+    SDL_Texture *roof = IMG_LoadTexture(renderer, "./Resources/Image/Top_Wall.png");
+    SDL_FRect roofTop;
+    roofTop.w = windowWidth;
+    roofTop.h = roofHeight;
+    roofTop.x = 0;
+    roofTop.y = 0;
 
-    for (int y = 0; y < roofHeight; ++y)
-    {
-        SDL_SetRenderDrawColor(renderer, ground.r, ground.g, ground.b, ground.a);
-        SDL_RenderLine(renderer, 0, y, windowWidth, y);
-    }
+    SDL_RenderTexture(renderer, roof, NULL, &roofTop);
+    SDL_DestroyTexture(roof);
 }
 
 void Game::renderGround()
 {
-    SDL_Color ground = {34, 139, 34, 255};
+    SDL_Texture *ground = IMG_LoadTexture(renderer, "./Resources/Image/Bottom_Wall.png");
+    SDL_FRect groundBottom;
+    groundBottom.w = windowWidth;
+    groundBottom.h = groundHeight;
+    groundBottom.x = 0;
+    groundBottom.y = windowHeight - groundHeight;
 
-    for (int y = windowHeight - groundHeight; y < windowHeight; ++y)
-    {
-        SDL_SetRenderDrawColor(renderer, ground.r, ground.g, ground.b, ground.a);
-        SDL_RenderLine(renderer, 0, y, windowWidth, y);
-    }
+    SDL_RenderTexture(renderer, ground, NULL, &groundBottom);
+    SDL_DestroyTexture(ground);
 }
 
 Game::~Game()
