@@ -89,6 +89,7 @@ public:
     float getXCordinate();
     float getYcordinate();
     float getWidth();
+    float getGapHeight();
 };
 
 class Population
@@ -136,6 +137,7 @@ public:
     void run();
 
     void renderBackground();
+    void renderRays(std::vector<std::vector<double>> rayCollection);
     void renderScore();
     void renderPipes();
     void renderRoof();
@@ -143,6 +145,14 @@ public:
     void renderBirds();
 
     ~Game();
+};
+
+class Ray
+{
+public:
+    double startX, startY;
+    double m;
+    double endX, endY;
 };
 
 #endif

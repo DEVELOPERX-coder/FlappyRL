@@ -1,5 +1,54 @@
 #include "Game.h"
 
+// ----- Rays Class Decleration Start -----
+
+#define RAYS_NUMBER 10
+void generate_rays(Bird &bird, Ray *rays, Pipe *nearest)
+{
+
+    for (int i = 0; i < RAYS_NUMBER; ++i)
+    {
+        double angle = ((double)i / RAYS_NUMBER) * M_PI;
+        if (angle > M_PI / 2)
+            angle += M_PI;
+
+        Ray ray = {bird.getXCordinate(), bird.getYCordinate(), angle, 0, 0};
+
+        int end_of_screen = 0;
+        int object_hit = 0;
+
+        double step = 1;
+        double x_end = ray.startX;
+        double y_end = ray.startY;
+
+        while (!end_of_screen && !object_hit)
+        {
+            x_end += step * cos(ray.m);
+            y_end += step * sin(ray.m);
+
+            if (x_end < 0 || x_end > 800)
+                end_of_screen = 1;
+            if (y_end <= 20 || y_end >= 600 - 20)
+                end_of_screen = 1;
+
+            if (x_end >= nearest->getXCordinate() && x_end <= nearest->getXCordinate() + nearest->getWidth())
+            {
+                if (y_end <= nearest->getYcordinate() - nearest->getGapHeight() / 2 || y_end >= nearest->getYcordinate() + nearest->getGapHeight() / 2)
+                {
+                    object_hit = 1;
+                }
+            }
+        }
+
+        ray.endX = x_end;
+        ray.endY = y_end;
+
+        rays[i] = ray;
+    }
+}
+
+// ----- Rays Class Decleration End -----
+
 // ----- Bird Class Decleration Start -----
 
 Bird::Bird(int inputNodes, std::vector<int> hiddenNodes, int outputNodes) : xCordinate(100), yCordinate(300), size(20), velocity(0), gravity(800), jumpStrength(-400), score(0), fitness(0), gameOver(false), i_nodes(inputNodes), h_nodes(hiddenNodes), o_nodes(outputNodes)
@@ -315,6 +364,11 @@ float Pipe::getWidth()
     return width;
 }
 
+float Pipe::getGapHeight()
+{
+    return gapHeight;
+}
+
 // ----- Pipe Class Decleration End -----
 
 // ----- Population Class Decleration Start -----
@@ -328,7 +382,7 @@ Population::Population(int size, float mRate)
     for (int i = 0; i < populationSize; ++i)
     {
         // population.push_back(Bird(10, {12, 12}, 1));
-        population.push_back(Bird(3, {4}, 1));
+        population.push_back(Bird(10, {11, 11}, 1));
     }
 }
 
@@ -526,6 +580,8 @@ void Game::run()
 
             bool foundAliveBird = false;
 
+            std::vector<std::vector<double>> rayCollection;
+
             for (int i = 0; i < populationSize; ++i)
             {
                 Bird &bird = population.getPopulation()[i];
@@ -533,7 +589,17 @@ void Game::run()
                 if (bird.getGameOver())
                     continue;
 
-                if (bird.feedForward({bird.getYCordinate(), nearest->getYcordinate(), nearest->getXCordinate() - bird.getXCordinate()})[0] > 0.5f)
+                Ray ray[RAYS_NUMBER];
+                generate_rays(bird, ray, nearest);
+
+                std::vector<float> input(RAYS_NUMBER);
+                for (int r = 0; r < RAYS_NUMBER; ++r)
+                {
+                    rayCollection.push_back({ray[r].startX, ray[r].startY, ray[r].endX, ray[r].endY});
+                    input[r] = sqrt(pow(ray[r].endX - ray[r].startX, 2) + pow(ray[r].endY - ray[r].startY, 2));
+                }
+
+                if (bird.feedForward(input)[0] > 0.5f)
                 {
                     bird.flap();
                 }
@@ -571,6 +637,7 @@ void Game::run()
 
             // Rendering Part Start
             renderBackground();
+            renderRays(rayCollection);
             renderPipes();
             renderRoof();
             renderGround();
@@ -624,6 +691,18 @@ void Game::renderPipes()
 
     SDL_DestroyTexture(pipeT);
     SDL_DestroyTexture(pipeB);
+}
+
+void Game::renderRays(std::vector<std::vector<double>> rayCollection)
+{
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    for (int i = 0; i < rayCollection.size(); ++i)
+    {
+        SDL_FPoint start = {static_cast<float>(rayCollection[i][0]), static_cast<float>(rayCollection[i][1])};
+        SDL_FPoint end = {static_cast<float>(rayCollection[i][2]), static_cast<float>(rayCollection[i][3])};
+
+        SDL_RenderLine(renderer, start.x, start.y, end.x, end.y);
+    }
 }
 
 void Game::renderBirds()
