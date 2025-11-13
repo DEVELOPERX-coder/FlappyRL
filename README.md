@@ -4,7 +4,7 @@ A project that trains a "flappy bird" agent to play the game using a Genetic Alg
 
 ### 🧑‍💻 General Information
 
-- **Maintainer:** [Sachin Rayal / [LinkedIn](https://www.linkedin.com/in/sachin-rayal/)]
+- **Maintainer:** [Sachin Rayal / [LinkedIn](https://www.linkedin.com/in/sachin-rayal/) / [GitHub](https://github.com/DEVELOPERX-coder/FlappyRL)]
 - **Date of Development:** November 2025
 - **Keywords:** Flappy Bird, Genetic Algorithm, Neural Network, Neuroevolution, C++, SDL3, Game AI
 
@@ -30,16 +30,16 @@ This repository provides a complete, self-contained C++/SDL3 application that vi
 
 ## II. Table of Contents
 
-- [I. Project Overview and Motivation](https://www.google.com/search?q=%23i-project-overview-and-motivation)
-- [II. Table of Contents](https://www.google.com/search?q=%23ii-table-of-contents)
-- [III. Methodological Framework: Explaining the "How"](https://www.google.com/search?q=%23iii-methodological-framework-explaining-the-how)
-  - [Architecture Overview](https://www.google.com/search?q=%23architecture-overview)
-  - [Algorithmic Deep Dive](https://www.google.com/search?q=%23algorithmic-deep-dive)
-- [IV. Project Usage & "Real-Life" Application](https://www.google.com/search?q=%23iv-project-usage--real-life-application)
-- [V. Getting Started: Installation and Setup](https://www.google.com/search?q=%23v-getting-started-installation-and-setup)
-- [VI. Project Roadmap, Limitations, and Future Work](https://www.google.com/search?q=%23vi-project-roadmap-limitations-and-future-work)
-- [VII. Guidelines for Collaboration and Contribution](https://www.google.com/search?q=%23vii-guidelines-for-collaboration-and-contribution)
-- [VIII. Project Licensing](https://www.google.com/search?q=%23viii-project-licensing)
+- [I. Project Overview and Motivation]
+- [II. Table of Contents]
+- [III. Methodological Framework: Explaining the "How"]
+  - [Architecture Overview]
+  - [Algorithmic Deep Dive]
+- [IV. Project Usage & "Real-Life" Application]
+- [V. Getting Started: Installation and Setup]
+- [VI. Project Roadmap, Limitations, and Future Work]
+- [VII. Guidelines for Collaboration and Contribution]
+- [VIII. Project Licensing]
 
 ---
 
