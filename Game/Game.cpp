@@ -8,9 +8,7 @@ void generate_rays(Bird &bird, Ray *rays, Pipe *nearest)
 
     for (int i = 0; i < RAYS_NUMBER; ++i)
     {
-        double angle = ((double)i / RAYS_NUMBER) * M_PI;
-        if (angle > M_PI / 2)
-            angle += M_PI;
+        double angle = -M_PI / 2 + ((double)i / (RAYS_NUMBER - 1)) * M_PI;
 
         Ray ray = {bird.getXCordinate(), bird.getYCordinate(), angle, 0, 0};
 
@@ -26,7 +24,7 @@ void generate_rays(Bird &bird, Ray *rays, Pipe *nearest)
             x_end += step * cos(ray.m);
             y_end += step * sin(ray.m);
 
-            if (x_end < 0 || x_end > 800)
+            if (x_end <= 0 || x_end >= 800)
                 end_of_screen = 1;
             if (y_end <= 20 || y_end >= 600 - 20)
                 end_of_screen = 1;
